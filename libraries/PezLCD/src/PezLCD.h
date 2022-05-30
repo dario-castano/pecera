@@ -50,7 +50,14 @@ class PezLCD {
 		const char ERROR_TERMO_FUERA_RANGO[3] = "99";
 
 	public:
-		PezLCD(LiquidCrystal* lcd);
+		PezLCD(
+				int rs,
+				int e,
+				int d4,
+				int d5,
+				int d6,
+				int d7);
+
 		~PezLCD();
 
 		void setTemp(int tempValue);

@@ -9,8 +9,15 @@
 #include <Arduino.h>
 
 // Constructor del objeto
-PezLCD::PezLCD(LiquidCrystal* lcd) {
-	this->lcd = lcd;
+PezLCD::PezLCD(
+		int rs,
+		int e,
+		int d4,
+		int d5,
+		int d6,
+		int d7) {
+
+	this->lcd = LiquidCrystal(rs, e, d4, d5, d6, d7);
 	this->tempBuf = (char*)malloc(sizeof(char) * 9);
 	this->luzBuf = (char*)malloc(sizeof(char) * 8);
 	this->nivelBuf = (char*)malloc(sizeof(char) * 9);
