@@ -7,10 +7,7 @@ class PezLCD {
 	private:
 		LiquidCrystal* lcd;
 
-		int tempValue;
-		int luzMode;
-		int nivelMode;
-		int tarea;
+		char* temperature = "-999";
 
 		char* tempBuf;
 		char* luzBuf;
@@ -43,14 +40,14 @@ class PezLCD {
 		const char THREE_EMPTY_SPACES[4] = "   ";
 		const char TWO_EMPTY_SPACES[3] = "  ";
 
-		const char TAREA_NIVEL_AGUA = "10";
-		const char TAREA_LLENAR_AGUA = "11";
-		const char TAREA_EXTRAER_AGUA = "12";
-		const char TAREA_LEER_FOTORESISTOR = "20";
-		const char TAREA_ENCENDER_LED = "21";
-		const char TAREA_APAGAR_LED = "22";
-		const char TAREA_LEER_TERMOMETRO = "30";
-		const char ERROR_TERMO_FUERA_RANGO = "99";
+		const char TAREA_NIVEL_AGUA[3] = "10";
+		const char TAREA_LLENAR_AGUA[3] = "11";
+		const char TAREA_EXTRAER_AGUA[3] = "12";
+		const char TAREA_LEER_FOTORESISTOR[3] = "20";
+		const char TAREA_ENCENDER_LED[3] = "21";
+		const char TAREA_APAGAR_LED[3] = "22";
+		const char TAREA_LEER_TERMOMETRO[3] = "30";
+		const char ERROR_TERMO_FUERA_RANGO[3] = "99";
 
 	public:
 		PezLCD(LiquidCrystal* lcd);
@@ -63,6 +60,7 @@ class PezLCD {
 
 		void print();
 		void clear();
+		void clear(int campo);
 };
 
 #endif
