@@ -10,18 +10,20 @@
 
 // Constructor del objeto
 PezLCD::PezLCD(
-		int rs,
-		int e,
-		int d4,
-		int d5,
-		int d6,
-		int d7) {
-
-	this->lcd = LiquidCrystal(rs, e, d4, d5, d6, d7);
-	this->tempBuf = (char*)malloc(sizeof(char) * 9);
-	this->luzBuf = (char*)malloc(sizeof(char) * 8);
-	this->nivelBuf = (char*)malloc(sizeof(char) * 9);
-	this->tareaBuf = (char*)malloc(sizeof(char) * 8);
+		byte rs,
+		byte e,
+		byte d4,
+		byte d5,
+		byte d6,
+		byte d7)
+{
+	lcd = &LiquidCrystal(rs, e, d4, d5, d6, d7);
+	temperature = 0;
+	tempBuf = (char*)malloc(sizeof(char) * 9);
+	luzBuf = (char*)malloc(sizeof(char) * 8);
+	nivelBuf = (char*)malloc(sizeof(char) * 9);
+	tareaBuf = (char*)malloc(sizeof(char) * 8);
+	lcd->begin(16, 2);
 }
 
 // Libera los buffer de la memoria
