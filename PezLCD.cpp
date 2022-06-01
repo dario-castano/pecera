@@ -8,6 +8,7 @@
 #include <LiquidCrystal.h>
 #include <Arduino.h>
 
+
 // Constructor del objeto
 PezLCD::PezLCD(
 		byte rs,
@@ -17,7 +18,7 @@ PezLCD::PezLCD(
 		byte d6,
 		byte d7)
 {
-	lcd = &LiquidCrystal(rs, e, d4, d5, d6, d7);
+	lcd = new LiquidCrystal(rs, e, d4, d5, d6, d7);
 	temperature = 0;
 	tempBuf = (char*)malloc(sizeof(char) * 9);
 	luzBuf = (char*)malloc(sizeof(char) * 8);
@@ -32,6 +33,7 @@ PezLCD::~PezLCD() {
 	free(luzBuf);
 	free(nivelBuf);
 	free(tareaBuf);
+  delete lcd;
 }
 
 // Convierte el valor entero de la temperatura a cadena de caracteres

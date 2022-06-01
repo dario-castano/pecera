@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "PezLCD.h"
 
-PezLCD lcd;
+
 const byte LCD_PIN_RS = 12;
 const byte LCD_PIN_E = 11;
 const byte LCD_PIN_D4 = 5;
@@ -9,15 +9,16 @@ const byte LCD_PIN_D5 = 4;
 const byte LCD_PIN_D6 = 3;
 const byte LCD_PIN_D7 = 2;
 
+PezLCD lcd(
+      LCD_PIN_RS,
+      LCD_PIN_E,
+      LCD_PIN_D4,
+      LCD_PIN_D5,
+      LCD_PIN_D6,
+      LCD_PIN_D7);
+
 void setup()
 {
-	lcd = PezLCD(
-			LCD_PIN_RS,
-			LCD_PIN_E,
-			LCD_PIN_D4,
-			LCD_PIN_D5,
-			LCD_PIN_D6,
-			LCD_PIN_D7);
 
 }
 
