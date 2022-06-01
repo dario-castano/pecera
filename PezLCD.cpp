@@ -27,7 +27,7 @@ PezLCD::PezLCD(
 	lcd->begin(16, 2);
 }
 
-// Libera los buffer de la memoria
+// Libera los buffer de la memoria y elimina el LiquidCrystal del heap
 PezLCD::~PezLCD() {
 	free(tempBuf);
 	free(luzBuf);
