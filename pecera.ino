@@ -2,7 +2,9 @@
 #include <OneWire.h>
 #include <HD44780_LCD_PCF8574.h>
 
-HD44780LCD pantalla(2, 16, 0x27); // Crea un espacio para el LCD en la memoria
+HD44780LCD pantalla(2, 16, 0x27);       // Crea un espacio para el LCD en la memoria
+OneWire onewire(2);                     // Crea un objeto OneWire para el termometro en el pin 2
+DallasTemperature termometro(&onewire); // Crea un objeto de termometro que lee por el OneWire 
 
 // Buffers
 char* bufferTemperatura;
@@ -11,7 +13,7 @@ char* bufferNivel;
 char* bufferTarea;
 
 // Mensajes del display
-char MENSAJE_TEMPERATURA[] = "T.C:";
+char MENSAJE_TEMPERATURA[] = "T:";
 char MENSAJE_LUZ[] = "LUZ:";
 char MENSAJE_LUZ_ON[] = "ON ";
 char MENSAJE_LUZ_OFF[] = "OFF";
@@ -23,7 +25,7 @@ char MENSAJE_TAREA[] = "TAREA";
 char MENSAJE_ERROR[] = "ERROR";
 
 // Rellenos del display (actuan como borrador)
-char CUATRO_ESPACIOS[] = "    ";
+char SIETE_ESPACIOS[] = "       ";
 char TRES_ESPACIOS[] = "   ";
 char DOS_ESPACIOS[] = "  ";
 
@@ -31,10 +33,16 @@ char DOS_ESPACIOS[] = "  ";
 int PIN_LECTURA_LDR = A0;
 int PIN_DISPARO_RELAY_LED = 13;
 int UMBRAL_ENCENDIDO_LED = 250;
-
 int valorLDR;
 
+// Configuracion termometro
+float TEMPERATURA_MAXIMA = 28.0;
+float valorTemp;
 
+// Configuracion bombas de agua
+int PIN_DISPARO_RELAY_BOMBA_TANQUE = 12;
+int PIN_DISPARO_RELAY_BOMBA_PECERA = 11;
+int TIEMPO_ACTIVACION_BOMBA_MS = 10000;
 
 
 // SECCION: LCD ********************************************************************************* //
@@ -76,14 +84,14 @@ void imprimir(
 /* imprimirTemperatura - Imprime la temperatura en la pantalla
  *  
  *  Ejemplo:
- *    T.C:-56
+ *    T:-56.45
  *  
  *  valor: El valor que se quiere presentar en la pantalla
  */
-void imprimirTemperatura(int valor) 
+void imprimirTemperatura(float valor) 
 {
-  itoa(valor, bufferTemperatura, 10);
-  imprimir(bufferTemperatura, MENSAJE_TEMPERATURA, CUATRO_ESPACIOS, 0, 4, LCDLineNumberOne);
+  dtostrf(valor, -7, 2, bufferTemperatura);
+  imprimir(bufferTemperatura, MENSAJE_TEMPERATURA, SIETE_ESPACIOS, 0, 2, LCDLineNumberOne);
 }
 
 /* imprimirEstadoLuz - Imprime en que estado esta la iluminacion de la pecera en la pantalla
@@ -160,7 +168,8 @@ void imprimirEvento(int codigo)
 
 // FIN SECCION: LCD ***************************************************************************** //
 
-// SECCION: LDR ********************************************************************************* //
+// SECCION: LDR / LED *************************************************************************** //
+
 void encenderLED()
 {
   if (digitalRead(PIN_DISPARO_RELAY_LED) == HIGH) {
@@ -187,7 +196,7 @@ void ajustarIluminacion()
   Serial.print("Lectura LDR: ");
   Serial.println(valorLDR);
 
-  if (valorLDR < 200) {
+  if (valorLDR < UMBRAL_ENCENDIDO_LED) {
     encenderLED();
   } else{
     apagarLED();
@@ -195,7 +204,29 @@ void ajustarIluminacion()
 }
 
 
-// FIN SECCION: LDR ***************************************************************************** //
+// FIN SECCION: LDR / LED ************************************************************************ //
+
+// SECCION: TERMOMETRO *************************************************************************** //
+
+void nivelarTemperatura () {
+    imprimirEvento(30);
+    termometro.requestTemperatures();
+    valorTemp = termometro.getTempCByIndex(0);
+    Serial.print("Temperatura de la pecera: ");
+    Serial.println(valorTemp);
+    imprimirTemperatura(valorTemp);
+
+    while (valorTemp > TEMPERATURA_MAXIMA) {
+      // sacar agua
+      // echar mas agua
+      delay(TIEMPO_ACTIVACION_BOMBA_MS); //ESTO ES POR EL MOMENTO QUE NO HE HECHO LO DE LA BOMBA
+      termometro.requestTemperatures();
+      valorTemp = termometro.getTempCByIndex(0);
+    }
+    
+  } 
+
+// FIN SECCION: TERMOMETRO *********************************************************************** //
 
 void setup()
 {
@@ -204,17 +235,19 @@ void setup()
   bufferNivel = (char*)malloc(sizeof(char) * 3);
   bufferTarea = (char*)malloc(sizeof(char) * 3);
   iniciarLCD();
+  termometro.begin();
 
   pinMode(PIN_DISPARO_RELAY_LED, OUTPUT);
   digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
   pantalla.PCF8574_LCDClearScreen();
   Serial.begin(9600);
-  Serial.println("INICIANDO PECERA!");
+  Serial.println("****INICIANDO PECERA!****");
   delay(3000);
 }
 
 void loop()
 {
   ajustarIluminacion();
+  nivelarTemperatura();
   delay(5000);
 }
