@@ -28,7 +28,7 @@ char DOS_ESPACIOS[] = "  ";
 // Configuracion LED / LDR
 int PIN_LECTURA_LDR = A0;
 int PIN_DISPARO_RELAY_LED = 13;
-int UMBRAL_ENCENDIDO_LED = 200;
+int UMBRAL_ENCENDIDO_LED = 250;
 
 int valorLDR;
 
@@ -162,13 +162,17 @@ void imprimirEvento(int codigo)
 void encenderLED()
 {
   if (digitalRead(PIN_DISPARO_RELAY_LED) == HIGH) {
-    
+    imprimirEvento(21);
+    digitalWrite(PIN_DISPARO_RELAY_LED, LOW);
   }
 }
 
 void apagarLED()
 {
-
+  if (digitalRead(PIN_DISPARO_RELAY_LED) == LOW) {
+    imprimirEvento(22);
+    digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
+  }
 }
 
 
@@ -176,6 +180,7 @@ void ajustarIluminacion()
 {
   imprimirEvento(20);
   valorLDR = analogRead(PIN_LECTURA_LDR);
+  Serial.println(valorLDR);
 
   if (valorLDR < 200) {
     encenderLED();
@@ -196,12 +201,15 @@ void setup()
   iniciarLCD();
 
   pinMode(PIN_DISPARO_RELAY_LED, OUTPUT);
+  digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
   pantalla.PCF8574_LCDClearScreen();
+  Serial.begin(9600);
+  Serial.println("INICIANDO PECERA!");
+  
 }
 
 void loop()
 {
   ajustarIluminacion();
-  
-
+  delay(5000);
 }
