@@ -1,3 +1,5 @@
+#include <DallasTemperature.h>
+#include <OneWire.h>
 #include <HD44780_LCD_PCF8574.h>
 
 HD44780LCD pantalla(2, 16, 0x27); // Crea un espacio para el LCD en la memoria
@@ -11,7 +13,7 @@ char* bufferTarea;
 // Mensajes del display
 char MENSAJE_TEMPERATURA[] = "T.C:";
 char MENSAJE_LUZ[] = "LUZ:";
-char MENSAJE_LUZ_ON[] = "ON";
+char MENSAJE_LUZ_ON[] = "ON ";
 char MENSAJE_LUZ_OFF[] = "OFF";
 char MENSAJE_NIVEL[] = "NIVEL:";
 char MENSAJE_NIVEL_ALTO[] = "HI";
@@ -165,6 +167,7 @@ void encenderLED()
     imprimirEvento(21);
     digitalWrite(PIN_DISPARO_RELAY_LED, LOW);
   }
+  imprimirEstadoLuz(1);
 }
 
 void apagarLED()
@@ -173,6 +176,7 @@ void apagarLED()
     imprimirEvento(22);
     digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
   }
+  imprimirEstadoLuz(0);
 }
 
 
@@ -180,6 +184,7 @@ void ajustarIluminacion()
 {
   imprimirEvento(20);
   valorLDR = analogRead(PIN_LECTURA_LDR);
+  Serial.print("Lectura LDR: ");
   Serial.println(valorLDR);
 
   if (valorLDR < 200) {
@@ -205,7 +210,7 @@ void setup()
   pantalla.PCF8574_LCDClearScreen();
   Serial.begin(9600);
   Serial.println("INICIANDO PECERA!");
-  
+  delay(3000);
 }
 
 void loop()
