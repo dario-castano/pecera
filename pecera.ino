@@ -25,8 +25,17 @@ char CUATRO_ESPACIOS[] = "    ";
 char TRES_ESPACIOS[] = "   ";
 char DOS_ESPACIOS[] = "  ";
 
+// Configuracion LED / LDR
+int PIN_LECTURA_LDR = A0;
+int PIN_DISPARO_RELAY_LED = 13;
+int UMBRAL_ENCENDIDO_LED = 200;
 
-// ********************************** SECCION: LCD ********************************** //
+int valorLDR;
+
+
+
+
+// SECCION: LCD ********************************************************************************* //
 
 // Configura lo que necesita el LCD para arrancar
 void iniciarLCD()
@@ -147,7 +156,36 @@ void imprimirEvento(int codigo)
 
 }
 
-// *************************** FIN SECCION: LCD *************************** //
+// FIN SECCION: LCD ***************************************************************************** //
+
+// SECCION: LDR ********************************************************************************* //
+void encenderLED()
+{
+  if (digitalRead(PIN_DISPARO_RELAY_LED) == HIGH) {
+    
+  }
+}
+
+void apagarLED()
+{
+
+}
+
+
+void ajustarIluminacion() 
+{
+  imprimirEvento(20);
+  valorLDR = analogRead(PIN_LECTURA_LDR);
+
+  if (valorLDR < 200) {
+    encenderLED();
+  } else{
+    apagarLED();
+  }
+}
+
+
+// FIN SECCION: LDR ***************************************************************************** //
 
 void setup()
 {
@@ -156,21 +194,14 @@ void setup()
   bufferNivel = (char*)malloc(sizeof(char) * 3);
   bufferTarea = (char*)malloc(sizeof(char) * 3);
   iniciarLCD();
+
+  pinMode(PIN_DISPARO_RELAY_LED, OUTPUT);
+  pantalla.PCF8574_LCDClearScreen();
 }
 
 void loop()
 {
-  pantalla.PCF8574_LCDClearScreen();
-  imprimirTemperatura(9);
-  imprimirEstadoLuz(0);
-  imprimirEstadoNivel(0);
-  delay(2000);
-  imprimirTemperatura(-29);
-  imprimirEstadoLuz(1);
-  imprimirEstadoNivel(-1);
-  delay(2000);
-  imprimirEvento(98);
-  delay(2000);
-  imprimirEvento(23);
-  delay(2000);
+  ajustarIluminacion();
+  
+
 }
