@@ -2,9 +2,9 @@
 #include <OneWire.h>
 #include <HD44780_LCD_PCF8574.h>
 
-HD44780LCD pantalla(2, 16, 0x27);       // Crea un espacio para el LCD en la memoria
-OneWire onewire(2);                     // Crea un objeto OneWire para el termometro en el pin 2
-DallasTemperature termometro(&onewire); // Crea un objeto de termometro que lee por el OneWire 
+HD44780LCD pantalla(2, 16, 0x27);        // Crea un espacio para el LCD en la memoria
+OneWire onewire(10);                     // Crea un objeto OneWire para el termometro en el pin 10
+DallasTemperature termometro(&onewire);  // Crea un objeto de termometro que lee por el OneWire 
 
 // Buffers
 char* bufferTemperatura;
@@ -90,7 +90,7 @@ void imprimir(
  */
 void imprimirTemperatura(float valor) 
 {
-  dtostrf(valor, -7, 2, bufferTemperatura);
+  dtostrf(valor, -7, 2, bufferTemperatura); // convierte de float a texto
   imprimir(bufferTemperatura, MENSAJE_TEMPERATURA, SIETE_ESPACIOS, 0, 2, LCDLineNumberOne);
 }
 
