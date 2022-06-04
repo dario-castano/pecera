@@ -1,6 +1,7 @@
 #include <DallasTemperature.h>
 #include <OneWire.h>
 #include <HD44780_LCD_PCF8574.h>
+#include <Arduino.h>
 
 HD44780LCD pantalla(2, 16, 0x27);        // Crea un espacio para el LCD en la memoria
 OneWire onewire(10);                     // Crea un objeto OneWire para el termometro en el pin 10
@@ -39,10 +40,17 @@ int valorLDR;
 float TEMPERATURA_MAXIMA = 28.0;
 float valorTemp;
 
-// Configuracion bombas de agua
+// Configuracion nivel de agua
 int PIN_DISPARO_RELAY_BOMBA_TANQUE = 12;
 int PIN_DISPARO_RELAY_BOMBA_PECERA = 11;
+int PIN_NIVEL_AGUA_BAJO = 6;
+int PIN_NIVEL_AGUA_ALTO = 7;
 int TIEMPO_ACTIVACION_BOMBA_MS = 10000;
+int valorSensorNivelAlto;
+int valorSensorNivelBajo;
+
+// Cada cuando tiempo se verifica el estado de la pecera en ms
+int PERIODO_REFRESCO = 5000;
 
 
 // SECCION: LCD ********************************************************************************* //
@@ -170,25 +178,36 @@ void imprimirEvento(int codigo)
 
 // SECCION: LDR / LED *************************************************************************** //
 
+/* encenderLED - Enciende el led y envia
+ * 
+ */
 void encenderLED()
 {
   if (digitalRead(PIN_DISPARO_RELAY_LED) == HIGH) {
     imprimirEvento(21);
+    Serial.println("Encendiendo LED...");
     digitalWrite(PIN_DISPARO_RELAY_LED, LOW);
   }
   imprimirEstadoLuz(1);
+  Serial.println("Iluminacion encendida");
 }
 
 void apagarLED()
 {
   if (digitalRead(PIN_DISPARO_RELAY_LED) == LOW) {
     imprimirEvento(22);
+    Serial.println("Apagando LED...");
     digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
   }
   imprimirEstadoLuz(0);
+  Serial.println("Iluminacion apagada");
 }
 
-
+/* ajustarIluminacion - Verifica el nivel de iluminacion de la pecera
+ *  
+ *  En el caso de que el valor LDR este debajo del umbral se activa el relay 
+ * 
+ */
 void ajustarIluminacion() 
 {
   imprimirEvento(20);
@@ -203,8 +222,72 @@ void ajustarIluminacion()
   }
 }
 
-
 // FIN SECCION: LDR / LED ************************************************************************ //
+
+// SECCION: NIVEL DE AGUA ************************************************************************ //
+
+void agregarAgua()
+{
+  imprimirEvento(11);
+  Serial.println("Agregando agua...");
+  digitalWrite(PIN_DISPARO_RELAY_BOMBA_TANQUE, LOW);
+  delay(TIEMPO_ACTIVACION_BOMBA_MS);
+  digitalWrite(PIN_DISPARO_RELAY_BOMBA_TANQUE, HIGH);
+}
+
+void extraerAgua()
+{
+  imprimirEvento(12);
+  Serial.println("Extrayendo agua...");
+  digitalWrite(PIN_DISPARO_RELAY_BOMBA_PECERA, LOW);
+  delay(TIEMPO_ACTIVACION_BOMBA_MS);
+  digitalWrite(PIN_DISPARO_RELAY_BOMBA_PECERA, HIGH);
+}
+
+void verificarNivelAgua()
+{
+  imprimirEvento(10);
+  Serial.println("Verificando nivel de agua");
+
+  valorSensorNivelAlto = digitalRead(PIN_NIVEL_AGUA_ALTO);
+  Serial.print("Lectura nivel de agua ALTO: ");
+  Serial.println(valorSensorNivelAlto);
+  valorSensorNivelBajo = digitalRead(PIN_NIVEL_AGUA_BAJO);
+  Serial.print("Lectura nivel de agua BAJO: ");
+  Serial.println(valorSensorNivelBajo);
+
+  if ((valorSensorNivelAlto == HIGH) && (valorSensorNivelBajo == HIGH)) {
+    imprimirEvento(98);
+    Serial.println("ERROR: Ambos sensores de nivel estan emitiendo valor ALTO");
+  } 
+  else if ((valorSensorNivelAlto == HIGH) && (valorSensorNivelBajo == LOW)) {
+    imprimirEstadoNivel(1);
+    while (valorSensorNivelAlto == HIGH) {
+      extraerAgua();
+      valorSensorNivelAlto = digitalRead(PIN_NIVEL_AGUA_ALTO);
+      Serial.print("Lectura nivel de agua ALTO: ");
+      Serial.println(valorSensorNivelAlto);
+      valorSensorNivelBajo = digitalRead(PIN_NIVEL_AGUA_BAJO);
+      Serial.print("Lectura nivel de agua BAJO: ");
+      Serial.println(valorSensorNivelBajo);
+    }
+  }
+  else if ((valorSensorNivelAlto == LOW) && (valorSensorNivelBajo == HIGH)) {
+    imprimirEstadoNivel(-1);
+    while (valorSensorNivelBajo == HIGH) {
+      agregarAgua();
+      valorSensorNivelAlto = digitalRead(PIN_NIVEL_AGUA_ALTO);
+      Serial.print("Lectura nivel de agua ALTO: ");
+      Serial.println(valorSensorNivelAlto);
+      valorSensorNivelBajo = digitalRead(PIN_NIVEL_AGUA_BAJO);
+      Serial.print("Lectura nivel de agua BAJO: ");
+      Serial.println(valorSensorNivelBajo);
+    }
+  }
+  imprimirEstadoNivel(0);
+}
+
+// FIN SECCION: NIVEL DE AGUA ******************************************************************** //
 
 // SECCION: TERMOMETRO *************************************************************************** //
 
@@ -217,9 +300,8 @@ void nivelarTemperatura () {
     imprimirTemperatura(valorTemp);
 
     while (valorTemp > TEMPERATURA_MAXIMA) {
-      // sacar agua
-      // echar mas agua
-      delay(TIEMPO_ACTIVACION_BOMBA_MS); //ESTO ES POR EL MOMENTO QUE NO HE HECHO LO DE LA BOMBA
+      extraerAgua();
+      agregarAgua();
       termometro.requestTemperatures();
       valorTemp = termometro.getTempCByIndex(0);
     }
@@ -238,6 +320,8 @@ void setup()
   termometro.begin();
 
   pinMode(PIN_DISPARO_RELAY_LED, OUTPUT);
+  pinMode(PIN_NIVEL_AGUA_ALTO, INPUT);
+  pinMode(PIN_NIVEL_AGUA_BAJO, INPUT);
   digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
   pantalla.PCF8574_LCDClearScreen();
   Serial.begin(9600);
@@ -249,5 +333,6 @@ void loop()
 {
   ajustarIluminacion();
   nivelarTemperatura();
-  delay(5000);
+  verificarNivelAgua();
+  delay(PERIODO_REFRESCO);
 }
