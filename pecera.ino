@@ -1,10 +1,28 @@
+/**************************************************************************
+ *  Programa de gestion autómatica de peceras
+    Copyright (C) 2022 Leidy Daniela Mora Sanchez
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ **************************************************************************/
+
 #include <DallasTemperature.h>
 #include <OneWire.h>
 #include <HD44780_LCD_PCF8574.h>
 #include <Arduino.h>
 
 HD44780LCD pantalla(2, 16, 0x27);        // Crea un espacio para el LCD en la memoria
-OneWire onewire(10);                     // Crea un objeto OneWire para el termometro en el pin 10
+OneWire onewire(8);                     // Crea un objeto OneWire para el termometro en el pin 8
 DallasTemperature termometro(&onewire);  // Crea un objeto de termometro que lee por el OneWire 
 
 // Buffers
@@ -37,7 +55,7 @@ int UMBRAL_ENCENDIDO_LED = 250;
 int valorLDR;
 
 // Configuracion termometro
-float TEMPERATURA_MAXIMA = 28.0;
+float TEMPERATURA_MAXIMA = 30.0;
 float valorTemp;
 
 // Configuracion nivel de agua
@@ -228,10 +246,10 @@ void ajustarIluminacion()
 
 void agregarAgua()
 {
-  imprimirEvento(11);
+  imprimirEvento(11);  
   Serial.println("Agregando agua...");
   digitalWrite(PIN_DISPARO_RELAY_BOMBA_TANQUE, LOW);
-  delay(TIEMPO_ACTIVACION_BOMBA_MS);
+  delay(TIEMPO_ACTIVACION_BOMBA_MS);  
   digitalWrite(PIN_DISPARO_RELAY_BOMBA_TANQUE, HIGH);
 }
 
@@ -284,6 +302,8 @@ void verificarNivelAgua()
       Serial.println(valorSensorNivelBajo);
     }
   }
+  digitalWrite(PIN_DISPARO_RELAY_BOMBA_TANQUE, HIGH);
+  digitalWrite(PIN_DISPARO_RELAY_BOMBA_PECERA, HIGH);
   imprimirEstadoNivel(0);
 }
 
@@ -322,11 +342,12 @@ void setup()
   pinMode(PIN_DISPARO_RELAY_LED, OUTPUT);
   pinMode(PIN_NIVEL_AGUA_ALTO, INPUT);
   pinMode(PIN_NIVEL_AGUA_BAJO, INPUT);
+  pinMode(PIN_DISPARO_RELAY_BOMBA_TANQUE, OUTPUT);
+  pinMode(PIN_DISPARO_RELAY_BOMBA_PECERA, OUTPUT);
   digitalWrite(PIN_DISPARO_RELAY_LED, HIGH);
   pantalla.PCF8574_LCDClearScreen();
   Serial.begin(9600);
   Serial.println("****INICIANDO PECERA!****");
-  delay(3000);
 }
 
 void loop()
